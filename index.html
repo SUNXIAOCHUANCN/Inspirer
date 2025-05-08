@@ -43,17 +43,26 @@
             gap: 10px;
         }
         
-        .draggable {
-            padding: 12px;
-            border-radius: 5px;
-            background-color: #f8bbd0;
-            cursor: move;
-            position: relative;
-            z-index: 1;
-            -webkit-user-select: none;
-            user-select: none;
-            white-space: pre-line;
+        .analysis-list {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 15px;
         }
+
+        .category-title {
+            font-weight: bold;
+            margin-top: 10px;
+            color: #333;
+        }
+
+        .feature-item {
+            padding: 6px 10px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            margin-left: 15px;
+        }
+
         
         input[type="text"] { 
             width: 80%; 
@@ -118,7 +127,7 @@
             })
             .then(response => response.json())
             .then(data => {
-                createAnalysisBoxes(data.response);
+                createAnalysisList(data.response);
             });
             
             input.value = '';
@@ -160,6 +169,65 @@
             chatBox.appendChild(container);
             chatBox.scrollTop = chatBox.scrollHeight;
         }
+
+        function createAnalysisList(responseText) {
+    const chatBox = document.getElementById('chat-box');
+    const rawContent = document.getElementById('raw-content');
+    
+    // 显示原始内容（保持不变）
+    rawContent.textContent = responseText;
+    
+    // 创建新的列表容器
+    const container = document.createElement('div');
+    container.className = 'analysis-list';
+    
+    try {
+        // 按行分割AI回复
+        const lines = responseText.split('\n');
+        
+        lines.forEach(line => {
+            if (line.trim() === '') return;
+            
+            // 使用正则表达式匹配格式：类别：[特征1,特征2]
+            const match = line.match(/^(.+?)[：:]\s*\[(.*?)\]\s*$/);
+            
+            if (match) {
+                const category = match[1].trim();
+                const features = match[2].split(',').map(f => f.trim()).filter(f=>f!=='');
+                
+                // 添加类别标题
+                const categoryTitle = document.createElement('div');
+                categoryTitle.className = 'category-title';
+                categoryTitle.textContent = category;
+                container.appendChild(categoryTitle);
+                
+                // 添加特征项
+                features.forEach(feature => {
+                    const featureItem = document.createElement('div');
+                    featureItem.className = 'feature-item';
+                    featureItem.textContent = feature;
+                    container.appendChild(featureItem);
+                });
+            } else {
+                // 如果不符合格式，直接显示原始行
+                const fallbackItem = document.createElement('div');
+                fallbackItem.className = 'feature-item';
+                fallbackItem.textContent = line;
+                container.appendChild(fallbackItem);
+            }
+        });
+    } catch (e) {
+        // 如果解析出错，直接显示原始内容
+        const fallbackItem = document.createElement('div');
+        fallbackItem.className = 'feature-item';
+        fallbackItem.textContent = responseText;
+        container.appendChild(fallbackItem);
+    }
+    
+    chatBox.appendChild(container);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
 
         function makeDraggable(element) {
             let offsetX = 0, offsetY = 0;
