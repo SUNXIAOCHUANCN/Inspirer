@@ -1,8 +1,12 @@
 from flask import Flask, request, jsonify, render_template
 from openai import OpenAI
+from assistant import assistant_bp
 import os
 
 app = Flask(__name__)
+
+# 注册蓝图
+app.register_blueprint(assistant_bp, url_prefix='/api')
 
 # 初始化OpenAI客户端
 client = OpenAI(
